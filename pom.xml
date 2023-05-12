@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011, 2023 Oracle and/or its affiliates. All rights reserved.
+
+    This program and the accompanying materials are made available under the
+    terms of the Eclipse Public License v. 2.0, which is available at
+    http://www.eclipse.org/legal/epl-2.0.
+
+    This Source Code may also be made available under the following Secondary
+    Licenses when the conditions for such availability set forth in the
+    Eclipse Public License v. 2.0 are satisfied: GNU General Public License,
+    version 2 with the GNU Classpath Exception, which is available at
+    https://www.gnu.org/software/classpath/license.html.
+
+    SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.oracle.poc</groupId>
+    <artifactId>json-duality-trials-and-errors</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>JSON Duality Trials and Errors</name>
+    <description>Use on your own risc</description>
+
+    <properties>
+        <oradb23c.version>latest</oradb23c.version>
+        <oradb23c.host>127.0.0.1</oradb23c.host>
+        <oradb23c.port>1521</oradb23c.port>
+        <oradb23c.http>5500</oradb23c.http>
+        <oradb23c.db>FREEPDB1</oradb23c.db>
+        <oradb23c.sid>FREE</oradb23c.sid>
+        <oradb23c.userName>test</oradb23c.userName>
+        <oradb23c.userPass>Us3r_P4ssw0rd</oradb23c.userPass>
+        <oradb23c.dbaPass>r00t_p4ssw0rd</oradb23c.dbaPass>
+        <oradb23c.url>jdbc:oracle:thin:${oradb23c.userName}/${oradb23c.userPass}@${oradb23c.host}:${oradb23c.port}/${oradb23c.db}</oradb23c.url>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.json</groupId>
+            <artifactId>jakarta.json-api</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.parsson</groupId>
+            <artifactId>parsson</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <version>23.2.0.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>0.33.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>11</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.oracle.jsonduality.Main</mainClass>
+                    <arguments>
+                        <argument>${oradb23c.url}</argument>
+                    </arguments>
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <configuration>
+                    <logStdout>true</logStdout>
+                    <images>
+                        <image>
+                            <alias>oradb</alias>
+                            <name>eclipselink.uk.oracle.com/infra/oradb23c:${oradb23c.version}</name>
+                            <run>
+                                <env>
+                                    <ORACLE_PDB>${oradb23c.db}</ORACLE_PDB>
+                                    <ORACLE_PWD>${oradb23c.dbaPass}</ORACLE_PWD>
+                                    <ORACLE_EDITION>standard</ORACLE_EDITION>
+                                </env>
+                                <hostname>${oradb23c.host}</hostname>
+                                <ports>
+                                    <port>${oradb23c.host}:${oradb23c.port}:${oradb23c.port}</port>
+                                    <port>${oradb23c.host}:${oradb23c.http}:${oradb23c.http}</port>
+                                </ports>
+                                <volumes>
+                                    <bind>${project.basedir}/scripts:/opt/oracle/scripts/startup</bind>
+                                </volumes>
+                                <wait>
+                                    <log>Completed: ALTER PLUGGABLE DATABASE ${oradb23c.db} SAVE STATE</log>
+                                    <time>600000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                    <showLogs>true</showLogs>
+                    <startParallel>false</startParallel>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </build>
+
+    <profiles>
+
+        <profile>
+            <id>startdb</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>oradb-run</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+
+        <profile>
+            <id>stopdb</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>oradb-stop</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
