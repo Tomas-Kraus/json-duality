@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -19,12 +19,9 @@ package com.oracle.jsonduality;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 
 import jakarta.json.JsonValue;
 class Pokemons {
-
-    private static final System.Logger LOGGER = System.getLogger(Pokemons.class.getName());
 
     private final Ora23cConnection connection;
 
