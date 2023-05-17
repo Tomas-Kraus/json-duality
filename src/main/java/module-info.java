@@ -18,6 +18,8 @@ module com.oracle.jsonduality {
 
     requires java.sql;
     requires transitive jakarta.json;
+    requires io.helidon.config;
+    requires io.helidon.nima.webserver;
 
     exports com.oracle.jsonduality;
 

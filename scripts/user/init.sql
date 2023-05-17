@@ -134,3 +134,17 @@ CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
         ]
     }
     FROM Trainer tr;
+
+CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
+    SELECT JSON {
+        'id': p.id,
+        'name': p.name,
+        UNNEST (
+            SELECT JSON {
+                'type_id': t.id,
+                'type': t.name
+            }
+            FROM Type t WITH NOINSERT NOUPDATE NODELETE WHERE t.id = p.type
+        )
+    }
+    FROM Pokemon p WITH INSERT UPDATE DELETE;
