@@ -25,6 +25,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>JSON Duality Trials and Errors</name>
     <description>Use on your own risc</description>
+    <packaging>pom</packaging>
 
     <properties>
         <oradb23c.version>latest</oradb23c.version>
@@ -38,6 +39,7 @@
         <oradb23c.dbaPass>r00t_p4ssw0rd</oradb23c.dbaPass>
         <oradb23c.url>jdbc:oracle:thin:${oradb23c.userName}/${oradb23c.userPass}@${oradb23c.host}:${oradb23c.port}/${oradb23c.db}</oradb23c.url>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <eclipselink.version>4.0.1</eclipselink.version>
     </properties>
 
     <dependencies>
@@ -57,40 +59,21 @@
             <version>23.2.0.0</version>
         </dependency>
         <dependency>
-            <groupId>io.helidon.common</groupId>
-            <artifactId>helidon-common</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.config</groupId>
-            <artifactId>helidon-config-yaml</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.nima.webserver</groupId>
-            <artifactId>helidon-nima-webserver</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.nima.http.media</groupId>
-            <artifactId>helidon-nima-http-media</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.nima.http.media</groupId>
-            <artifactId>helidon-nima-http-media-jsonp</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
     </dependencies>
 
+    <modules>
+        <module>jpa</module>
+        <module>web</module>
+        <module>app</module>
+    </modules>
+
+
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
 
         <pluginManagement>
             <plugins>
@@ -114,6 +97,9 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>3.1.0</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>io.fabric8</groupId>
@@ -128,42 +114,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <release>20</release>
-                    <compilerArgs>--enable-preview</compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <configuration>
-                    <logStdout>true</logStdout>
-                    <images>
-                        <image>
-                            <alias>oradb</alias>
-                            <name>eclipselink.uk.oracle.com/infra/oradb23c:${oradb23c.version}</name>
-                            <run>
-                                <env>
-                                    <ORACLE_PDB>${oradb23c.db}</ORACLE_PDB>
-                                    <ORACLE_PWD>${oradb23c.dbaPass}</ORACLE_PWD>
-                                    <ORACLE_EDITION>standard</ORACLE_EDITION>
-                                </env>
-                                <hostname>${oradb23c.host}</hostname>
-                                <ports>
-                                    <port>${oradb23c.host}:${oradb23c.port}:${oradb23c.port}</port>
-                                    <port>${oradb23c.host}:${oradb23c.http}:${oradb23c.http}</port>
-                                </ports>
-                                <volumes>
-                                    <bind>${project.basedir}/scripts:/opt/oracle/scripts/startup</bind>
-                                </volumes>
-                                <wait>
-                                    <log>Completed: ALTER PLUGGABLE DATABASE ${oradb23c.db} SAVE STATE</log>
-                                    <time>600000</time>
-                                </wait>
-                            </run>
-                        </image>
-                    </images>
-                    <showLogs>true</showLogs>
-                    <startParallel>false</startParallel>
+                    <release>19</release>
                 </configuration>
             </plugin>
         </plugins>
@@ -171,74 +122,16 @@
     </build>
 
     <profiles>
-
         <profile>
-            <id>helidon</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <configuration>
-                            <mainClass>com.oracle.jsonduality.HelidonMain</mainClass>
-                            <cleanupDaemonThreads>false</cleanupDaemonThreads>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>main-run</id>
-                                <phase>integration-test</phase>
-                                <goals>
-                                    <goal>java</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <id>jersey</id>
         </profile>
-
         <profile>
             <id>startdb</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>oradb-run</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>start</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
-
-
         <profile>
             <id>stopdb</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>oradb-stop</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>stop</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
+
     </profiles>
 
 </project>

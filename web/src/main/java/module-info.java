@@ -14,13 +14,17 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-module com.oracle.jsonduality {
+module com.oracle.jsonduality.web {
 
-    requires java.sql;
-    requires transitive jakarta.json;
-    requires io.helidon.config;
-    requires io.helidon.nima.webserver;
+    requires jakarta.ejb;
+    requires jakarta.annotation;
+    requires jakarta.persistence;
+    requires org.eclipse.persistence.jpars;
+    requires grizzly.http.server;
+    requires jersey.server;
+    requires jersey.common;
+    requires jersey.container.grizzly2.http;
 
-    exports com.oracle.jsonduality;
+    exports com.oracle.jsonduality.web;
 
 }

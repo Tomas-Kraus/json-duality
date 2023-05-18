@@ -14,34 +14,10 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-package com.oracle.jsonduality;
+module com.oracle.jsonduality.model {
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+    requires jakarta.persistence;
 
-class Ora23cConnection implements AutoCloseable {
-
-    private final Connection connection;
-
-    Ora23cConnection(String url) {
-        try {
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-            connection = DriverManager.getConnection(url);
-        } catch (ClassNotFoundException | SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    Connection get() {
-        return connection;
-    }
-
-    @Override
-    public void close() throws Exception {
-        if (connection != null) {
-            connection.close();
-        }
-    }
+    exports com.oracle.jsonduality.model;
 
 }
