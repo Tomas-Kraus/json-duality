@@ -23,6 +23,7 @@ Looks like JPA-RS does not contain service for listing all stored entity instanc
 - http://localhost:8080/latest/jpars_example/query/ListAllTypes
 - http://localhost:8080/latest/jpars_example/query/ListAllPokemons
 - http://localhost:8080/latest/jpars_example/query/ListAllTrainers
+- http://localhost:8080/latest/jpars_example/query/ListAllTrainersWithPokemons
 
 Specific instance of entity may be retrieved using `http://localhost:8080/latest/jpars_example/entity/<entity_name>/<id>`:
 - http://localhost:8080/latest/jpars_example/entity/Type/1
@@ -35,4 +36,15 @@ Entity modifications may be done using
  curl -X PUT -H "Content-Type: application/json" \
        -d '{"id":20,"name":"Gloom","typeId":12}' \
        http://localhost:8080/latest/jpars_example/entity/Pokemon
+```
+- `POST` request to update an instance of entity:
+```
+ curl -X POST -H "Content-Type: application/json" \
+       -d '{"id":20,"name":"Vileplume","typeId":12}' \
+       http://localhost:8080/latest/jpars_example/entity/Pokemon
+```
+- `DELETE` request to delete an instance of entity:
+```
+curl -X DELETE -H "Content-Type: application/json" \
+     http://localhost:8080/latest/jpars_example/entity/Pokemon/20
 ```

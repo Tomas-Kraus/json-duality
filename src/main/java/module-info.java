@@ -16,8 +16,12 @@
 
 module com.oracle.jsonduality.model {
 
+    requires jakarta.annotation;
     requires jakarta.persistence;
-
-    exports com.oracle.jsonduality.model;
+    requires org.eclipse.persistence.jpars;
+    requires grizzly.http.server;
+    requires jersey.server;
+    requires jersey.common;
+    requires jersey.container.grizzly2.http;
 
 }
