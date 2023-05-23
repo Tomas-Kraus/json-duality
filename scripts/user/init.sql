@@ -106,6 +106,7 @@ INSERT INTO OwnPokemon (trainer_id, pokemon_id, hp) VALUES (3, 17, 182);
 INSERT INTO OwnPokemon (trainer_id, pokemon_id, hp) VALUES (3, 18, 293);
 INSERT INTO OwnPokemon (trainer_id, pokemon_id, hp) VALUES (3, 19, 284);
 
+/*
 CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
     SELECT JSON {
         'id': tr.id,
@@ -134,7 +135,38 @@ CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
         ]
     }
     FROM Trainer tr;
+*/
 
+CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
+    Trainer {
+        id: id
+        name: name
+        pokemons: OwnPokemon [ {
+            pokemon_id: pokemon_id
+            trainer_id: trainer_id
+            hp: hp
+            Pokemon @unnest {
+                id: id
+                name: name
+                Type @unnest {
+                    type_id: id
+                    type: name
+                }
+            }
+        } ]
+    };
+
+CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
+    Pokemon @insert @update @delete {
+       id: id
+       name: name
+       Type @unnest @noinsert @noupdate @nodelete {
+           type_id: id
+           type: name
+       }
+    };
+
+/*
 CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
     SELECT JSON {
         'id': p.id,
@@ -148,3 +180,4 @@ CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
         )
     }
     FROM Pokemon p WITH INSERT UPDATE DELETE;
+*/
