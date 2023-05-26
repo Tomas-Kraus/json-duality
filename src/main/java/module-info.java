@@ -20,6 +20,9 @@ module com.oracle.jsonduality {
     requires transitive jakarta.json;
     requires io.helidon.config;
     requires io.helidon.nima.webserver;
+    requires org.mongodb.driver.core;
+    requires org.mongodb.driver.sync.client;
+    requires org.mongodb.bson;
 
     exports com.oracle.jsonduality;
 

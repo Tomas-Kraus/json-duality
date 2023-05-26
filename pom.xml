@@ -31,12 +31,15 @@
         <oradb23c.host>127.0.0.1</oradb23c.host>
         <oradb23c.port>1521</oradb23c.port>
         <oradb23c.http>5500</oradb23c.http>
+        <oradb23c.mongo>27017</oradb23c.mongo>
         <oradb23c.db>FREEPDB1</oradb23c.db>
         <oradb23c.sid>FREE</oradb23c.sid>
         <oradb23c.userName>test</oradb23c.userName>
         <oradb23c.userPass>Us3r_P4ssw0rd</oradb23c.userPass>
         <oradb23c.dbaPass>r00t_p4ssw0rd</oradb23c.dbaPass>
         <oradb23c.url>jdbc:oracle:thin:${oradb23c.userName}/${oradb23c.userPass}@${oradb23c.host}:${oradb23c.port}/${oradb23c.db}</oradb23c.url>
+        <ords.version>23.1.3.137.1032</ords.version>
+        <ords.md5>20e333cffb1a7c39519bcd7463cd1d7e</ords.md5>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -55,6 +58,11 @@
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc11</artifactId>
             <version>23.2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>4.9.1</version>
         </dependency>
         <dependency>
             <groupId>io.helidon.common</groupId>
@@ -111,6 +119,11 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>3.1.0</version>
@@ -119,6 +132,11 @@
                     <groupId>io.fabric8</groupId>
                     <artifactId>docker-maven-plugin</artifactId>
                     <version>0.33.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.googlecode.maven-download-plugin</groupId>
+                    <artifactId>download-maven-plugin</artifactId>
+                    <version>1.7.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -130,6 +148,17 @@
                 <configuration>
                     <release>20</release>
                     <compilerArgs>--enable-preview</compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>docker</directory>
+                        </fileset>
+                    </filesets>
                 </configuration>
             </plugin>
             <plugin>
@@ -151,9 +180,13 @@
                                 <ports>
                                     <port>${oradb23c.host}:${oradb23c.port}:${oradb23c.port}</port>
                                     <port>${oradb23c.host}:${oradb23c.http}:${oradb23c.http}</port>
+                                    <port>${oradb23c.host}:${oradb23c.mongo}:${oradb23c.mongo}</port>
                                 </ports>
                                 <volumes>
-                                    <bind>${project.basedir}/scripts:/opt/oracle/scripts/startup</bind>
+                                    <bind>
+                                        <volume>${project.basedir}/scripts:/opt/oracle/scripts/startup</volume>
+                                        <volume>${project.basedir}/docker:/opt/oracle/install</volume>
+                                    </bind>
                                 </volumes>
                                 <wait>
                                     <log>Completed: ALTER PLUGGABLE DATABASE ${oradb23c.db} SAVE STATE</log>
@@ -214,10 +247,54 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>com.googlecode.maven-download-plugin</groupId>
+                        <artifactId>download-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jdk-download</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>wget</goal>
+                                </goals>
+                                <configuration>
+                                    <url>https://download.java.net/java/GA/jdk19.0.2/fdb695a9d9064ad6b064dc6df578380c/7/GPL/openjdk-19.0.2_linux-x64_bin.tar.gz</url>
+                                    <unpack>false</unpack>
+                                    <outputDirectory>${project.basedir}/docker</outputDirectory>
+                                    <sha256>34cf8d095cc071e9e10165f5c45023f96ec68397fdaabf6c64bfec1ffeee6198</sha256>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>ords-download</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>wget</goal>
+                                </goals>
+                                <configuration>
+                                    <url>https://download.oracle.com/otn_software/java/ords/ords-${ords.version}.zip</url>
+                                    <unpack>false</unpack>
+                                    <outputDirectory>${project.basedir}/docker</outputDirectory>
+                                    <md5>${ords.md5}</md5>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>oci-download</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>wget</goal>
+                                </goals>
+                                <configuration>
+                                    <url>https://download.oracle.com/otn_software/linux/instantclient/2110000/instantclient-basic-linux.x64-21.10.0.0.0dbru.zip</url>
+                                    <unpack>false</unpack>
+                                    <outputDirectory>${project.basedir}/docker</outputDirectory>
+                                    <md5>0e8fca689549fa10030ab83a80142e30</md5>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
-
 
         <profile>
             <id>stopdb</id>

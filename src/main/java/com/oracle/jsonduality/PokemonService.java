@@ -36,7 +36,7 @@ import jakarta.json.JsonValue;
 
 class PokemonService implements HttpService {
 
-   private final  Ora23cConnection connection;
+   private final Ora23cConnection connection;
 
     PokemonService(Ora23cConnection connection) {
         this.connection = connection;
@@ -92,7 +92,7 @@ class PokemonService implements HttpService {
     }
 
     // wget -O- http://localhost:8080/pokemon/list
-    // curl http://localhost:8080/pokemon/list
+    // curl --header='Content-Type:application/json' http://localhost:8080/pokemon/list
     /**
      * Return all stored pokemons.
      *
@@ -114,7 +114,7 @@ class PokemonService implements HttpService {
 
     // Insert new pokemon(s) from JSON POST request.
     // wget -O- --post-data='{"id":20,"name":"Gloom","type_id":12}' --header='Content-Type:application/json' http://localhost:8080/pokemon/insert
-    // curl -X POST -H "Content-Type: application/json" -d '{"id":20,"name":"Gloom","type_id":12}' http://localhost:8080/pokemon/insert
+    // curl -X POST -H "Content-Type: application/json" -d '{"_id":20,"name":"Gloom","type_id":12}' http://localhost:8080/pokemon/insert
     /**
      * Insert new pokemon(s).
      *
@@ -161,7 +161,7 @@ class PokemonService implements HttpService {
     // wget -O- --post-data='[20]' --header='Content-Type:application/json' http://localhost:8080/pokemon/delete
     // curl -X POST -H "Content-Type: application/json" -d '[20]' http://localhost:8080/pokemon/delete
     private void deletePokemons(JsonArray ids, ServerResponse response) {
-        try (PreparedStatement stmt = connection.get().prepareStatement("DELETE FROM Pokemons p WHERE p.data.id = ?")) {
+        try (PreparedStatement stmt = connection.get().prepareStatement("DELETE FROM Pokemons p WHERE p.data._id = ?")) {
             int count = 0;
             if (ids.getValueType() != JsonValue.ValueType.ARRAY) {
                 throw new RuntimeException("Pokemon value is not JsonArray");
@@ -191,9 +191,9 @@ class PokemonService implements HttpService {
 
 
     // Update pokemon(s) from JSON POST request.
-    // curl -X POST -H "Content-Type: application/json" -d '{"id":20,"name":"Vileplume","type_id":4}' http://localhost:8080/pokemon/update
+    // curl -X POST -H "Content-Type: application/json" -d '{"_id":20,"name":"Vileplume","type_id":4}' http://localhost:8080/pokemon/update
     private void updatePokemons(JsonStructure pokemons, ServerResponse response) {
-        try (PreparedStatement stmt = connection.get().prepareStatement("UPDATE Pokemons SET data = ? WHERE json_value(data, '$.id.numberOnly()') = ?")) {
+        try (PreparedStatement stmt = connection.get().prepareStatement("UPDATE Pokemons SET data = ? WHERE json_value(data, '$._id.numberOnly()') = ?")) {
             int count = 0;
             switch (pokemons.getValueType()) {
             case ARRAY:
@@ -202,13 +202,13 @@ class PokemonService implements HttpService {
                         throw new RuntimeException("Pokemon value is not JsonObject");
                     }
                     stmt.setObject(1, pokemon.asJsonObject());
-                    stmt.setObject(2, pokemon.asJsonObject().get("id"));
+                    stmt.setObject(2, pokemon.asJsonObject().get("_id"));
                     count += stmt.executeUpdate();
                 }
                 break;
             case OBJECT:
                 stmt.setObject(1, pokemons.asJsonObject());
-                stmt.setObject(2, pokemons.asJsonObject().get("id"));
+                stmt.setObject(2, pokemons.asJsonObject().get("_id"));
                 count += stmt.executeUpdate();
                 break;
             default:

@@ -14,6 +14,10 @@
 
 db:
   url: jdbc:oracle:thin:${oradb23c.userName}/${oradb23c.userPass}@${oradb23c.host}:${oradb23c.port}/${oradb23c.db}
+  mongo:
+    url: mongodb://${oradb23c.userName}:${oradb23c.userPass}@${oradb23c.host}:27017/${oradb23c.userName}?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true
+    database: ${oradb23c.userName}
+
 
 server:
   port: 8080

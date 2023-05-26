@@ -109,7 +109,7 @@ INSERT INTO OwnPokemon (trainer_id, pokemon_id, hp) VALUES (3, 19, 284);
 /*
 CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
     SELECT JSON {
-        'id': tr.id,
+        '_id': tr.id,
         'name': tr.name,
         'pokemons': [
             SELECT JSON {
@@ -137,9 +137,10 @@ CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
     FROM Trainer tr;
 */
 
+-- MongoDB API-Compatible Duality View requires _id
 CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
     Trainer {
-        id: id
+        _id: id
         name: name
         pokemons: OwnPokemon [ {
             pokemon_id: pokemon_id
@@ -156,9 +157,10 @@ CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW TrainersView AS
         } ]
     };
 
+-- MongoDB API-Compatible Duality View requires _id
 CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
     Pokemon @insert @update @delete {
-       id: id
+       _id: id
        name: name
        Type @unnest @noinsert @noupdate @nodelete {
            type_id: id
@@ -169,7 +171,7 @@ CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
 /*
 CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
     SELECT JSON {
-        'id': p.id,
+        '_id': p.id,
         'name': p.name,
         UNNEST (
             SELECT JSON {
@@ -181,3 +183,9 @@ CREATE OR REPLACE JSON RELATIONAL DUALITY VIEW Pokemons AS
     }
     FROM Pokemon p WITH INSERT UPDATE DELETE;
 */
+
+-- List user tables: SELECT * FROM show_tables;
+CREATE VIEW show_tables AS
+    SELECT table_name
+           FROM user_tables
+           ORDER BY table_name;
